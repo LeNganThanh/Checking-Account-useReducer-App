@@ -1,17 +1,22 @@
 import React, { useEffect, useReducer } from "react";
 import "./App.css";
 
-//declare balance and reducer
-const initialBalance = Number(localStorage.getItem("balance")) || 0;
+//declare initial state and reducer
 
 const initialState = {
-  balance: initialBalance,
+  balance: 0,
   deposit: "",
   withdraw: "",
 };
 
-const reducer = (state, action) => {
+function reducer(state, action) {
   switch (action.type) {
+    case "initialVal": {
+      return {
+        ...state,
+        balance: action.value,
+      };
+    }
     case "updateDepositStr": {
       return {
         ...state,
@@ -42,16 +47,34 @@ const reducer = (state, action) => {
       throw new Error("Unknown action: " + action.type);
     }
   }
-};
+}
 
 //refactor checking account by using useReducer
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  //useEffect to get the value from localStorage to initial value
+  useEffect(() => {
+    const val = parseInt(localStorage.getItem("balance"));
+    if (val) {
+      getInitialVal(val);
+    }
+  }, []);
+
+  //useEffect to send value to localStorage
   useEffect(() => {
     localStorage.setItem("balance", state.balance);
   }, [state.balance]);
 
+  //set initial value for the balance from localStorage
+  function getInitialVal(val) {
+    dispatch({
+      type: "initialVal",
+      value: val,
+    });
+  }
+
+  //get deposit value from input field
   function updateDepositStr(e) {
     dispatch({
       type: "updateDepositStr",
@@ -59,6 +82,7 @@ function App() {
     });
   }
 
+  //get withdraw value from input field
   function updateWithdrawalStr(e) {
     dispatch({
       type: "updateWithdrawalStr",
@@ -66,28 +90,19 @@ function App() {
     });
   }
 
-  function deposit() {
-    dispatch({
-      type: "deposit",
-    });
-  }
-
-  function withdraw() {
-    dispatch({
-      type: "withdraw",
-    });
-  }
   return (
     <div className="container">
       <h1>Your current balance is {state.balance}</h1>
       <div>
         <div>
           <input onChange={updateDepositStr} value={state.deposit} />
-          <button onClick={deposit}>Deposit</button>
+          <button onClick={() => dispatch({ type: "deposit" })}>Deposit</button>
         </div>
         <div>
           <input onChange={updateWithdrawalStr} value={state.withdraw} />
-          <button onClick={withdraw}>Withdraw</button>
+          <button onClick={() => dispatch({ type: "withdraw" })}>
+            Withdraw
+          </button>
         </div>
       </div>
     </div>
