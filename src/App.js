@@ -1,52 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import React, { useEffect, useReducer } from "react";
+import "./App.css";
 
-function App() {
-  // const initialBalance = Number(localStorage.getItem('balance')) || 0;
-  // const [balance, setBalance] = useState(initialBalance);
-  const [balance, setBalance] = useState(0);
-  const [depositStr, setDepositStr] = useState(0);
-  const [withdrawalStr, setWithdrawalStr] = useState(0);
+//declare balance and reducer
+const initialBalance = Number(localStorage.getItem("balance")) || 0;
 
-  // on mount, retrieve the balance from localStorage
-  useEffect(() => {
-    const storageBalance = localStorage.getItem('balance');
-    if (storageBalance) {
-      setBalance(parseInt(storageBalance));
+const initialState = {
+  balance: initialBalance,
+  deposit: "",
+  withdraw: "",
+};
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "updateDepositStr": {
+      return {
+        ...state,
+        deposit: action.deposit,
+      };
     }
-  }, []); // to ensure that useEffect runs only after the first render
+    case "updateWithdrawalStr": {
+      return {
+        ...state,
+        withdraw: action.withdraw,
+      };
+    }
+    case "deposit": {
+      return {
+        ...state,
+        balance: parseInt(state.balance) + parseInt(state.deposit),
+        deposit: "",
+      };
+    }
+    case "withdraw": {
+      return {
+        ...state,
+        balance: state.balance - parseInt(state.withdraw),
+        withdraw: "",
+      };
+    }
+    default: {
+      throw new Error();
+    }
+  }
+};
+
+//refactor checking account by using useReducer
+function App() {
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    localStorage.setItem('balance', balance);
-  }, [balance]) // whenever balance changes, this effect will be executed
+    localStorage.setItem("balance", state.balance);
+  }, [state.balance]);
 
   function updateDepositStr(e) {
-    setDepositStr(e.target.value);
+    dispatch({
+      type: "updateDepositStr",
+      deposit: e.target.value,
+    });
   }
 
   function updateWithdrawalStr(e) {
-    setWithdrawalStr(e.target.value);
+    dispatch({
+      type: "updateWithdrawalStr",
+      withdraw: e.target.value,
+    });
   }
 
   function deposit() {
-    setBalance(balance => balance + parseInt(depositStr));
-    setDepositStr(0);
+    dispatch({
+      type: "deposit",
+    });
   }
 
   function withdraw() {
-    setBalance(balance => balance - parseInt(withdrawalStr));
-    setWithdrawalStr(0);
+    dispatch({
+      type: "withdraw",
+    });
   }
   return (
-    <div className="App">
-      <h1>Your current balance is {balance}</h1>
+    <div className="container">
+      <h1>Your current balance is {state.balance}</h1>
       <div>
-        <input onChange={updateDepositStr} value={depositStr}/>
-        <button onClick={deposit}>Deposit</button>
-      </div>
-      <div>
-        <input onChange={updateWithdrawalStr} value={withdrawalStr}/>
-        <button onClick={withdraw}>Withdraw</button>
+        <div>
+          <input onChange={updateDepositStr} value={state.deposit} />
+          <button onClick={deposit}>Deposit</button>
+        </div>
+        <div>
+          <input onChange={updateWithdrawalStr} value={state.withdraw} />
+          <button onClick={withdraw}>Withdraw</button>
+        </div>
       </div>
     </div>
   );
