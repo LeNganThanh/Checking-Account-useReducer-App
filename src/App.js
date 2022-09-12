@@ -39,7 +39,7 @@ const reducer = (state, action) => {
       };
     }
     default: {
-      throw new Error();
+      throw new Error("Unknown action: " + action.type);
     }
   }
 };
